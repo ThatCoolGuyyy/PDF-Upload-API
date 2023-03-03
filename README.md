@@ -1,5 +1,5 @@
 # AWS S3 File Upload API with PHP
-This Laravel controller handles file uploads to an AWS S3 bucket. It uses the AWS SDK for PHP to interact with the S3 service.
+This is a simple Laravel project that handles file uploads to an AWS S3 bucket. It uses the AWS SDK for PHP to interact with the S3 service.
 
 ## Setup
 - Clone the repository.

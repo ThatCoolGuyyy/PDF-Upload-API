@@ -11,11 +11,13 @@ class UploadController extends Controller
     public function UploadFile(Request $request){
         
         $request->validate([
-            'file' => 'required|mimes:pdf,docx,doc,pptx,ppt,xls,xlsx|max:2048'
+            'file' => 'required|mimes:pdf,docx,doc,pptx,ppt,xls,xlsx,jpg|max:2048'
         ]);
 
         $file = $request->file('file');
-        $path = Storage::putFile('uploads', $file);
+        
+
+        //create s3 client
         $s3 = new S3Client([
             'version' => 'latest',
             'region'  => env('AWS_DEFAULT_REGION'),
@@ -25,33 +27,27 @@ class UploadController extends Controller
             ]
         ]);
 
-       
         $keyname = 'uploads/' . $file->getClientOriginalName();
-        $bucket = 'my-bucket813211';
-        Storage::disk('local')->delete($path);
 
-       try {
-        $s3->headBucket([
-            'Bucket' => $bucket,
-        ]);
-        } catch (S3Exception $e) {
-        
-            if ($e->getStatusCode() === 404) {
+        //create bucket
+        if (!$s3->doesBucketExist(env('AWS_BUCKET'))) {
+            // Create bucket if it doesn't exist
+            try{
                 $s3->createBucket([
-                    'Bucket' => $bucket,
+                    'Bucket' => env('AWS_BUCKET'),
                 ]);
-            } else {
+            } catch (S3Exception $e) {
                 return response()->json([
-                    'error' => $e->getMessage()
+                    'Bucket Creation Failed' => $e->getMessage()
                 ]);
             }
         }
-
+        //upload file
         try {
             $result = $s3->putObject([
-                'Bucket' => 'my-bucket813211',
+                'Bucket' => env('AWS_BUCKET'),
                 'Key'    => $keyname,
-                'Body'   => storage_path('app/' . $path),
+                'Body'   => fopen($file, 'r'),
                 'ACL'    => 'public-read'
             ]);
 

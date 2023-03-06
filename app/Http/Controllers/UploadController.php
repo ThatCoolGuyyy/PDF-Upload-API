@@ -28,7 +28,7 @@ class UploadController extends Controller
         ]);
 
         $keyname = 'uploads/' . $file->getClientOriginalName();
-
+        
         //create bucket
         if (!$s3->doesBucketExist(env('AWS_BUCKET'))) {
             // Create bucket if it doesn't exist
